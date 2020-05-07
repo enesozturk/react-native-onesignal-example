@@ -6,7 +6,7 @@
  * @flow strict-local
  */
 
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -24,7 +24,52 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+import OneSignal from 'react-native-onesignal';
+
 const App: () => React$Node = () => {
+  const [oneSignalInitialized, setOneSignalInitialized] = useState(false);
+
+  const onReceived = (notification) => {};
+
+  const onOpened = (openResult) => {
+    const payload = openResult.notification.payload;
+  };
+
+  const onIds = (device) => {
+    console.log('REGISTER DEVICE', device);
+    if (device.pushToken) {
+      setOneSignalInitialized(true);
+    }
+  };
+
+  useEffect(() => {
+    // App componentim her prop değişikliğinde OneSignal kurulumunu tekrar çalıştırmaması için
+    // bir state değişkeni ile ve kullanıcının giriş yapmış olduğundan emin olmak için
+    // User prop'u ile kontrol ediyorum.
+    // Burası sizin senaryonuza göre değişir.
+    if (!oneSignalInitialized) {
+      // In-Focus özelliği 0,1 veya 2 gibi üç farklı değer alabilir ve default olarak 1 atanmıştır;
+      // 0 ve 1 durumlarında bildirimi açtığınızda veya ön plan durumunda bildirim geldiğinde
+      // ekranda alert mesajı ile bildiirm detaylarını görürsünüz. Fakat buna çoğu senaryoda ihtiyacınız yok.
+      // 2 olarak ayarlayarak bu alert mesajını kaldırabilirsiniz.
+      OneSignal.inFocusDisplaying(2);
+      // Buraya OneSignal panelinde oluşturduğunuz uygulamanın ID'sini bağlamanız gerekli.
+      OneSignal.init('YOUR_ONESIGNAL_APP_ID');
+
+      // İlgili event listener'lar
+      OneSignal.addEventListener('received', onReceived);
+      OneSignal.addEventListener('opened', onOpened);
+      OneSignal.addEventListener('ids', onIds);
+    }
+
+    return () => {
+      // Component unmount olduğunda bu listenerları silmek gerekir.
+      OneSignal.removeEventListener('received', onReceived);
+      OneSignal.removeEventListener('opened', onOpened);
+      OneSignal.removeEventListener('ids', onIds);
+    };
+  }, []);
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
