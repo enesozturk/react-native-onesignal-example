@@ -16,7 +16,6 @@ import {ResponsiveImage} from './src/components/ResponsiveImage';
 import {BottomPanel} from './src/components/BottomPanel';
 
 const App: () => React$Node = () => {
-  const [oneSignalInitialized, setOneSignalInitialized] = useState(false);
   const [openedNotification, setOpenedNotification] = useState(null);
   const [panelState, setPanelState] = useState({
     isActive: false,
@@ -51,18 +50,16 @@ const App: () => React$Node = () => {
   };
 
   const onIds = (device) => {
-    if (device.pushToken) setOneSignalInitialized(true);
+    console.log('[INFO] Device: ', device);
   };
 
   useEffect(() => {
-    if (!oneSignalInitialized) {
-      OneSignal.inFocusDisplaying(2);
-      OneSignal.init('YOUR_ONESIGNAL_APP_ID');
+    OneSignal.inFocusDisplaying(2);
+    OneSignal.init('YOUR_ONESIGNAL_APP_ID');
 
-      OneSignal.addEventListener('received', onReceived);
-      OneSignal.addEventListener('opened', onOpened);
-      OneSignal.addEventListener('ids', onIds);
-    }
+    OneSignal.addEventListener('received', onReceived);
+    OneSignal.addEventListener('opened', onOpened);
+    OneSignal.addEventListener('ids', onIds);
 
     return () => {
       OneSignal.removeEventListener('received', onReceived);
